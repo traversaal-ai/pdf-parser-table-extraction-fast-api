@@ -1,6 +1,6 @@
 # Document Table Extractor API (FastAPI)
 
-This project provides a FastAPI-based API for extracting tables from documents (PDF, DOCX, etc.) using multiple backends (Docling, Llamaparse, Unstructured). It supports saving extracted tables as CSV and HTML files in organized output directories.
+This project provides a FastAPI-based API for extracting tables from documents (PDF) using multiple backends (Docling, Llamaparse, Unstructured). It supports saving extracted tables as CSV and HTML files in organized output directories.
 
 ## Features
 - Extract tables from documents using Docling, Llamaparse, and Unstructured backends
@@ -47,7 +47,7 @@ Start the FastAPI server with Uvicorn:
 uvicorn main:app --reload
 ```
 
-The API will be available at [http://localhost:8000](http://localhost:8000)
+The API will be available at [http://localhost:8000/docs](http://localhost:8000/docs)
 
 ## API Usage
 ### `/extract` Endpoint
