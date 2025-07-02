@@ -15,7 +15,7 @@ This project provides a FastAPI-based API for extracting tables from documents (
 ## Installation
 1. **Clone the repository:**
    ```sh
-   git clone <your-repo-url>
+   git clone https://github.com/traversaal-ai/pdf-parser-table-extraction-fast-api.git
    cd get-tables-fastapi
    ```
 2. **Create and activate a virtual environment:**
@@ -95,5 +95,3 @@ Returns a JSON object with the extraction results for each backend.
 - The output directory will be deleted and recreated for each extraction request.
 - Llamaparse backend is currently a placeholder.
 
-## License
-MIT 
