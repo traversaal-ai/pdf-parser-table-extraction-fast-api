@@ -9,7 +9,7 @@ This project provides a FastAPI-based API for extracting tables from documents (
 - Configuration via `.env` file
 
 ## Requirements
-- Python 3.8+
+- Python 3.11
 - pip
 
 ## Installation
