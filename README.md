@@ -37,8 +37,7 @@ Create a `.env` file in the project root with your API keys and endpoints:
 ```
 llamaparse_api_key=your_llamaparse_key_here
 unstructured_api_key=your_unstructured_key_here
-azure_api_endpoint=https://your-azure-endpoint.com
-azure_api_key=your_azure_key_here
+openai_api_key=your_openai_api_key_here
 ```
 
 ## Running the API
@@ -80,7 +79,7 @@ Returns a JSON object with the extraction results for each backend.
 {
   "results": {
     "docling": { ... },
-    "llamaparse": "Llamaparse extraction not implemented.",
+    "llamaparse": { ... },
     "unstructured": { ... }
   }
 }
