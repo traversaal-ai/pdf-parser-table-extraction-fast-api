@@ -1,8 +1,12 @@
+"""
+Docling extraction service for table extraction from documents.
+"""
 import time
 import pandas as pd
 from pathlib import Path
 from datetime import datetime
 import logging
+from typing import Any, Dict
 
 try:
     from docling.document_converter import DocumentConverter
@@ -10,18 +14,41 @@ try:
 except ImportError:
     DOCLING_AVAILABLE = False
 
+class DoclingServiceError(Exception):
+    """Custom exception for Docling extraction errors."""
+    pass
 
-def extract_tables_from_file(input_file_path: str, output_dir: Path, job_id: str, jobs_db, TableInfo, ExtractionResult, _log: logging.Logger) -> object:
+def extract_tables_from_file(
+    input_file_path: str,
+    output_dir: Path,
+    job_id: str,
+    jobs_db: Dict[str, Any],
+    TableInfo,
+    ExtractionResult,
+    _log: logging.Logger
+) -> object:
     """
-    Extract tables from document and save as CSV/HTML
+    Extract tables from a document using Docling and save as CSV/HTML.
+    Args:
+        input_file_path (str): Path to the input document.
+        output_dir (Path): Output directory for extracted tables.
+        job_id (str): Unique job identifier.
+        jobs_db (dict): Job status tracking.
+        TableInfo: Pydantic model for table info.
+        ExtractionResult: Pydantic model for extraction result.
+        _log (logging.Logger): Logger instance.
+    Returns:
+        ExtractionResult: Extraction result object.
+    Raises:
+        DoclingServiceError: If extraction fails or Docling is unavailable.
     """
     if not DOCLING_AVAILABLE:
-        raise Exception("DocumentConverter not available. Please install docling.")
+        raise DoclingServiceError("DocumentConverter not available. Please install docling.")
     try:
         jobs_db[job_id]["status"] = "processing"
         jobs_db[job_id]["progress"] = 10
         jobs_db[job_id]["message"] = "Initializing DocumentConverter..."
-        _log.info(f"Starting extraction for job {job_id}")
+        _log.info(f"[Docling] Starting extraction for job {job_id}")
         doc_converter = DocumentConverter()
         start_time = time.time()
         jobs_db[job_id]["progress"] = 20
@@ -40,13 +67,13 @@ def extract_tables_from_file(input_file_path: str, output_dir: Path, job_id: str
             jobs_db[job_id]["message"] = f"Processing table {table_ix + 1}/{total_tables}..."
             table_df: pd.DataFrame = table.export_to_dataframe()
             if table_df.empty:
-                _log.warning(f"Table {table_ix} is empty, skipping...")
+                _log.warning(f"[Docling] Table {table_ix} is empty, skipping...")
                 continue
-            _log.info(f"Processing Table {table_ix + 1}: {len(table_df)} rows, {len(table_df.columns)} columns")
+            _log.info(f"[Docling] Processing Table {table_ix + 1}: {len(table_df)} rows, {len(table_df.columns)} columns")
             csv_filename = f"{doc_filename}-table-{table_ix + 1}.csv"
             element_csv_path = docling_dir / csv_filename
             table_df.to_csv(element_csv_path, index=False)
-            _log.info(f"Saved CSV: {element_csv_path}")
+            _log.info(f"[Docling] Saved CSV: {element_csv_path}")
             html_filename = f"{doc_filename}-table-{table_ix + 1}.html"
             element_html_path = docling_dir / html_filename
             try:
@@ -55,11 +82,11 @@ def extract_tables_from_file(input_file_path: str, output_dir: Path, job_id: str
                 with open(element_html_path, "w", encoding="utf-8") as fp:
                     fp.write(styled_html)
             except Exception as e:
-                _log.warning(f"DocumentConverter HTML export failed: {e}. Using pandas fallback.")
+                _log.warning(f"[Docling] DocumentConverter HTML export failed: {e}. Using pandas fallback.")
                 fallback_html = f"""<!DOCTYPE html>\n<html><head><title>Table {table_ix + 1}</title></head>\n<body><h1>Table {table_ix + 1} - {doc_filename}</h1>\n{table_df.to_html(index=False)}</body></html>"""
                 with open(element_html_path, "w", encoding="utf-8") as fp:
                     fp.write(fallback_html)
-            _log.info(f"Saved HTML: {element_html_path}")
+            _log.info(f"[Docling] Saved HTML: {element_html_path}")
             tables_info.append(TableInfo(
                 table_index=table_ix,
                 csv_path=str(element_csv_path.absolute()),
@@ -74,7 +101,6 @@ def extract_tables_from_file(input_file_path: str, output_dir: Path, job_id: str
         jobs_db[job_id]["progress"] = 100
         jobs_db[job_id]["message"] = "Processing completed successfully!"
         jobs_db[job_id]["completed_at"] = datetime.now()
-        
         result = ExtractionResult(
             job_id=job_id,
             status="completed",
@@ -85,19 +111,29 @@ def extract_tables_from_file(input_file_path: str, output_dir: Path, job_id: str
             output_directory=str(docling_dir.absolute()),
             message=f"Successfully extracted {len(tables_info)} tables in {processing_time:.2f} seconds"
         )
-        _log.info(f"Extraction completed for job {job_id}: {len(tables_info)} tables in {processing_time:.2f}s")
+        _log.info(f"[Docling] Extraction completed for job {job_id}: {len(tables_info)} tables in {processing_time:.2f}s")
         return result
     except Exception as e:
         jobs_db[job_id]["status"] = "failed"
         jobs_db[job_id]["message"] = f"Processing failed: {str(e)}"
         jobs_db[job_id]["completed_at"] = datetime.now()
-        _log.error(f"Extraction failed for job {job_id}: {str(e)}")
-        raise
+        _log.error(f"[Docling] Extraction failed for job {job_id}: {str(e)}")
+        raise DoclingServiceError(f"Docling extraction failed: {str(e)}")
 
-def process_document_background(file_path: str, output_dir: Path, job_id: str, jobs_db, TableInfo, ExtractionResult, _log: logging.Logger):
-    """Background task for processing documents"""
+def process_document_background(
+    file_path: str,
+    output_dir: Path,
+    job_id: str,
+    jobs_db: Dict[str, Any],
+    TableInfo,
+    ExtractionResult,
+    _log: logging.Logger
+) -> None:
+    """
+    Background task for processing documents with Docling.
+    """
     try:
         result = extract_tables_from_file(file_path, output_dir, job_id, jobs_db, TableInfo, ExtractionResult, _log)
         jobs_db[job_id]["result"] = result
     except Exception as e:
-        _log.error(f"Background processing failed for job {job_id}: {str(e)}")
+        _log.error(f"[Docling] Background processing failed for job {job_id}: {str(e)}")
