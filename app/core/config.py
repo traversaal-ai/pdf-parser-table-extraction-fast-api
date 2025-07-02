@@ -9,17 +9,16 @@ class Settings(BaseSettings):
     load_dotenv()
 
 
-    # BetterStack Logging
+    
     llamaparse_api_key: str = os.getenv("llamaparse_api_key", "")
     unstructured_api_key: str = os.getenv("unstructured_api_key", "")
     openai_api_key:str = os.getenv("openai_api_key", "")
-    # azure_api_endpoint: str = os.getenv("azure_api_endpoint", "")
-    # azure_api_key:str = os.getenv("azure_api_key","")
+ 
 
     
     class Config:
         case_sensitive = True
         env_file = ".env"
-        extra = "ignore"  # Allow extra environment variables (for client API keys)
+        extra = "ignore"  
 
 settings = Settings()
