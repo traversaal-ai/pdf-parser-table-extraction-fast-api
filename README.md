@@ -100,7 +100,9 @@ We evaluated all three extraction tools across three fundamental criteria:
 
 ### Criteria	
 Completeness: Are all data values captured from the table?
+
 Accuracy: Are the extracted values correct?
+
 Structure: Is the layout (rows/columns) preserved correctly?
 
 ### 📈 Performance Snapshot
@@ -115,7 +117,7 @@ Docling offers the best balance, while LlamaParse captures nearly all tables but
 
 ### Visual Comparison
 <img width="500" height="500" alt="Extraction Quality Graph" src="https://github.com/user-attachments/assets/1e4e800d-1ec5-48a1-adc4-9d9280092650" />
-<img width="942" height="351" alt="image" src="https://github.com/user-attachments/assets/17b5a4e9-81b3-4421-be9f-0372beb4edab" />
+
 
 🎥 Video Demo
 
