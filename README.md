@@ -95,15 +95,15 @@ Returns a JSON object with the extraction results for each backend.
 - The output directory will be deleted and recreated for each extraction request.
 - Llamaparse backend is currently a placeholder.
 
-##📊 Evaluation: Table Extraction Quality
+## 📊 Evaluation: Table Extraction Quality
 We evaluated all three extraction tools across three fundamental criteria:
 
-###Criteria	Description
+### Criteria	Description
 Completeness	Are all data values captured from the table?
 Accuracy	Are the extracted values correct?
 Structure	Is the layout (rows/columns) preserved correctly?
 
-###📈 Performance Snapshot
+### 📈 Performance Snapshot
 Tool	Completeness	Accuracy	Structure	Avg Score
 Docling	90.5%	94.9%	63.1%	82.8
 Unstructured	53.1%	51.5%	64.2%	56.3
@@ -111,19 +111,15 @@ LlamaParse	96.9%	62.0%	80.4%	79.8
 
 Docling offers the best balance, while LlamaParse captures nearly all tables but with some accuracy trade-offs.
 
-🖼️ Visual Comparison
-<img width="720" height="558" alt="Extraction Quality Graph" src="https://github.com/user-attachments/assets/1e4e800d-1ec5-48a1-adc4-9d9280092650" />
+### Visual Comparison
+<img width="500" height="500" alt="Extraction Quality Graph" src="https://github.com/user-attachments/assets/1e4e800d-1ec5-48a1-adc4-9d9280092650" />
 🎥 Video Demo
+
+
 A visual walkthrough showing how different tools perform table extraction on sample documents.
 
 
 
-📌 Notes
-The input file must exist at the provided server path
-
-The output directory will be cleared before each extraction
-
-Llamaparse backend is currently in a placeholder/testing state
 
 
 
