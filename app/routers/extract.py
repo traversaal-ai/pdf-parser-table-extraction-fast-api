@@ -8,6 +8,7 @@ from app.schemas.extraction import ExtractionResponse, TableInfo, ExtractionResu
 import shutil
 import uuid
 import logging
+import os
 
 router = APIRouter(prefix="", tags=["Extraction"])
 _log = logging.getLogger(__name__)
@@ -30,19 +31,28 @@ async def extract(
     if not input_path.exists() or not input_path.is_file():
         _log.error(f"Input file does not exist: {input_file_path}")
         raise HTTPException(status_code=400, detail="Input file does not exist or is not a file.")
-    output_path = Path(output_dir)
-    if output_path.exists() and not output_path.is_dir():
-        _log.error(f"Output path exists and is not a directory: {output_dir}")
-        raise HTTPException(status_code=400, detail="Output path exists and is not a directory.")
-    if output_path.exists():
-        shutil.rmtree(output_path)
-    output_path.mkdir(parents=True, exist_ok=True)
+
+    # In the user-specified output_dir, create a 'table_outputs' subfolder
+    user_output_dir = Path(output_dir)
+    table_outputs_dir = user_output_dir / "table_outputs"
+    table_outputs_dir.mkdir(parents=True, exist_ok=True)
+
+    # Create a unique subdirectory for this extraction job
+    job_output_dir = table_outputs_dir / f"job_{job_id}"
+    job_output_dir.mkdir(exist_ok=True)
+
+    # Only delete the docling, llamaparse, and unstructured subfolders if they exist
+    for subfolder in ["docling", "llamaparse", "unstructured"]:
+        subfolder_path = job_output_dir / subfolder
+        if subfolder_path.exists() and subfolder_path.is_dir():
+            shutil.rmtree(subfolder_path)
+
     results = {}
     _log.info(f"Starting extraction job {job_id} for file: {input_file_path}")
     if docling:
         try:
             results["docling"] = docling_extract_tables_from_file(
-                input_file_path, output_path, job_id, jobs_db, TableInfo, ExtractionResult, _log
+                input_file_path, job_output_dir, job_id, jobs_db, TableInfo, ExtractionResult, _log
             )
         except Exception as e:
             _log.error(f"Docling extraction failed: {e}")
@@ -50,7 +60,7 @@ async def extract(
     if llamaparse:
         try:
             results["llamaparse"] = extract_tables_llamaparse(
-                input_file_path, output_path, job_id, jobs_db, TableInfo, ExtractionResult, _log
+                input_file_path, job_output_dir, job_id, jobs_db, TableInfo, ExtractionResult, _log
             )
         except Exception as e:
             _log.error(f"LlamaParse extraction failed: {e}")
@@ -58,7 +68,7 @@ async def extract(
     if unstructured:
         try:
             results["unstructured"] = extract_tables_from_file_unstructured(
-                input_file_path, output_path, job_id, jobs_db, TableInfo, ExtractionResult, _log, unstructured_client
+                input_file_path, job_output_dir, job_id, jobs_db, TableInfo, ExtractionResult, _log, unstructured_client
             )
         except Exception as e:
             _log.error(f"Unstructured extraction failed: {e}")

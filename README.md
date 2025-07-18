@@ -7,10 +7,15 @@ This project provides a FastAPI-based API for extracting tables from documents (
 - Save results as CSV and HTML in organized output folders
 - Simple `/extract` API endpoint
 - Configuration via `.env` file
+- **GPU acceleration recommended for Docling for best performance**
 
 ## Requirements
-- Python 3.11
+- Python 3.11+
 - pip
+- (Optional) NVIDIA GPU for faster Docling extraction
+
+## Output Organization
+A folder named `table_outputs` will be created inside your specified output directory. For each extraction job, a unique subfolder (named with a job ID) is created inside `table_outputs`. All results for that job are stored in this subfolder.
 
 ## Installation
 1. **Clone the repository:**
@@ -28,6 +33,7 @@ This project provides a FastAPI-based API for extracting tables from documents (
    ```
 3. **Install dependencies:**
    ```sh
+   pip install --upgrade pip
    pip install -r requirements.txt
    ```
 
@@ -89,11 +95,14 @@ Returns a JSON object with the extraction results for each backend.
 - All output files are saved in subdirectories of the provided `output_dir` (e.g., `output_dir/docling/`, `output_dir/unstructured/`).
 - Each backend saves its own results in its respective folder.
 
-
 ## Notes
 - The input file must exist on the server at the specified path.
-- The output directory will be deleted and recreated for each extraction request.
-- Llamaparse backend is currently a placeholder.
+- LlamaParse backend is currently a placeholder.
+- **For best performance with Docling, use a machine with an NVIDIA GPU.**
+
+## License
+MIT
+
 
 ## 📊 Evaluation: Table Extraction Quality
 We evaluated all three extraction tools across three fundamental criteria:
