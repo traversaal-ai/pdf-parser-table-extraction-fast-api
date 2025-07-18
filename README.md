@@ -1,3 +1,16 @@
+# ⚠️ Important Notice: Output Directory Behavior (Update on July 18, 2025)
+
+> A previous version of this repo **assumed a fresh or empty output directory**, and would clear it before writing results.  
+> If you pointed the `output` path to an existing directory containing data, that data may have been removed.
+
+✅ This behavior has now been corrected. The current version:
+- **Does not delete existing output folders or files**
+- Creates new subfolders safely and preserves existing data
+
+If you're updating from an older version, please **pull the latest code** and avoid reusing sensitive directories as output targets.
+
+---
+
 # Document Table Extractor API (FastAPI)
 
 This project provides a FastAPI-based API for extracting tables from documents (PDF) using multiple backends (Docling, Llamaparse, Unstructured). It supports saving extracted tables as CSV and HTML files in organized output directories.
