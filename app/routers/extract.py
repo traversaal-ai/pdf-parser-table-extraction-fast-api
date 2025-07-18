@@ -13,7 +13,7 @@ import os
 router = APIRouter(prefix="", tags=["Extraction"])
 _log = logging.getLogger(__name__)
 
-@router.post("/extract", response_model=ExtractionResponse, status_code=status.HTTP_200_OK)
+@router.post("/extract", status_code=status.HTTP_200_OK)
 async def extract(
     input_file_path: str = Form(..., description="Absolute path to the input document on the server"),
     output_dir: str = Form(..., description="Absolute path to the output directory (will be created/freshened)"),
@@ -23,7 +23,7 @@ async def extract(
 ):
     """
     Unified endpoint to extract tables using selected extractors. User provides input file path and output directory.
-    Returns extraction results for each selected backend.
+    Returns extraction results for each selected backend and the job_id.
     """
     job_id = str(uuid.uuid4())
     jobs_db: Dict[str, dict] = {job_id: {}}
@@ -32,16 +32,11 @@ async def extract(
         _log.error(f"Input file does not exist: {input_file_path}")
         raise HTTPException(status_code=400, detail="Input file does not exist or is not a file.")
 
-    # In the user-specified output_dir, create a 'table_outputs' subfolder
     user_output_dir = Path(output_dir)
     table_outputs_dir = user_output_dir / "table_outputs"
     table_outputs_dir.mkdir(parents=True, exist_ok=True)
-
-    # Create a unique subdirectory for this extraction job
     job_output_dir = table_outputs_dir / f"job_{job_id}"
     job_output_dir.mkdir(exist_ok=True)
-
-    # Only delete the docling, llamaparse, and unstructured subfolders if they exist
     for subfolder in ["docling", "llamaparse", "unstructured"]:
         subfolder_path = job_output_dir / subfolder
         if subfolder_path.exists() and subfolder_path.is_dir():
@@ -74,4 +69,4 @@ async def extract(
             _log.error(f"Unstructured extraction failed: {e}")
             results["unstructured"] = f"Unstructured extraction failed: {str(e)}"
     _log.info(f"Extraction job {job_id} completed.")
-    return {"results": results} 
+    return {"job_id": job_id, "results": results} 
