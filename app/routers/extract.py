@@ -13,6 +13,24 @@ import os
 router = APIRouter(prefix="", tags=["Extraction"])
 _log = logging.getLogger(__name__)
 
+SUMMARY_FIELDS = [
+    "job_id",
+    "status",
+    "document_name",
+    "processing_time",
+    "total_tables",
+    "output_directory",
+    "message"
+]
+
+def filter_summary_fields(result):
+    if isinstance(result, dict):
+        return {k: v for k, v in result.items() if k in SUMMARY_FIELDS}
+    # If it's a Pydantic model, convert to dict first
+    if hasattr(result, 'dict'):
+        return {k: v for k, v in result.dict().items() if k in SUMMARY_FIELDS}
+    return result
+
 @router.post("/extract", status_code=status.HTTP_200_OK)
 async def extract(
     input_file_path: str = Form(..., description="Absolute path to the input document on the server"),
@@ -46,25 +64,28 @@ async def extract(
     _log.info(f"Starting extraction job {job_id} for file: {input_file_path}")
     if docling:
         try:
-            results["docling"] = docling_extract_tables_from_file(
+            docling_result = docling_extract_tables_from_file(
                 input_file_path, job_output_dir, job_id, jobs_db, TableInfo, ExtractionResult, _log
             )
+            results["docling"] = filter_summary_fields(docling_result)
         except Exception as e:
             _log.error(f"Docling extraction failed: {e}")
             results["docling"] = f"Docling extraction failed: {str(e)}"
     if llamaparse:
         try:
-            results["llamaparse"] = extract_tables_llamaparse(
+            llamaparse_result = extract_tables_llamaparse(
                 input_file_path, job_output_dir, job_id, jobs_db, TableInfo, ExtractionResult, _log
             )
+            results["llamaparse"] = filter_summary_fields(llamaparse_result)
         except Exception as e:
             _log.error(f"LlamaParse extraction failed: {e}")
             results["llamaparse"] = f"LlamaParse extraction failed: {str(e)}"
     if unstructured:
         try:
-            results["unstructured"] = extract_tables_from_file_unstructured(
+            unstructured_result = extract_tables_from_file_unstructured(
                 input_file_path, job_output_dir, job_id, jobs_db, TableInfo, ExtractionResult, _log, unstructured_client
             )
+            results["unstructured"] = filter_summary_fields(unstructured_result)
         except Exception as e:
             _log.error(f"Unstructured extraction failed: {e}")
             results["unstructured"] = f"Unstructured extraction failed: {str(e)}"
